@@ -1,0 +1,69 @@
+# Import necessary PyTorch libraries
+import torch
+from torch import nn
+from torch import optim
+import torch.nn.functional as F
+from torchvision import datasets, transforms, models
+import numpy as np
+
+# Check whether GPU is available and if it is then use GPU
+train_on_gpu = torch.cuda.is_available()
+
+if not train_on_gpu:
+    print('CUDA is not available.  Training on CPU ...')
+else:
+    print('CUDA is available!  Training on GPU ...')
+    
+# Data augmentation
+train_transforms = transforms.Compose([transforms.RandomResizedCrop(224),
+                                       transforms.RandomHorizontalFlip(),
+                                       transforms.RandomVerticalFlip(),
+                                       transforms.RandomRotation(45),
+                                       transforms.RandomAffine(45),
+                                       transforms.ColorJitter(),
+                                       transforms.ToTensor(),
+                                       transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                                            std=[0.229, 0.224, 0.225])])
+
+# Use 10-crop for Test Time Augmentation
+test_transforms = transforms.Compose([transforms.Resize(256),
+                                      transforms.TenCrop(224),
+                                      transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])),
+                                      transforms.Lambda(lambda crops: torch.stack([transforms.Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225])(crop) for crop in crops]))])
+
+# Load the datasets with ImageFolder
+train_data = datasets.ImageFolder("./IndonesianFood/train", transform=train_transforms)
+test_data = datasets.ImageFolder("./IndonesianFood/test", transform=test_transforms)
+
+# Using the image datasets and the tranforms, define the dataloaders
+train_loader = torch.utils.data.DataLoader(train_data, batch_size = 64, shuffle = True)
+test_loader = torch.utils.data.DataLoader(test_data, batch_size= 64, shuffle = True)
+
+# print out some data stats
+print('Number of training images: ', len(train_data))
+print('Number of testing images: ', len(test_data))
+
+with open('IndonesianFood/Meta/classes.txt', 'r') as txt:
+    classes = [l.strip() for l in txt.readlines()]
+print('Number of classes: ', len(classes))    
+
+# Analyzing the shape of one batch
+train_images, train_labels = next(iter(train_loader))
+test_images, test_labels = next(iter(test_loader))
+
+print('Shape of first batch of training images: ', train_images.shape)
+print('Shape of first batch of test images: ', test_images.shape) # 5-D array because of 10 crops
+
+# Visualize some sample training data after Data augmentation
+
+# obtain one batch of training images
+dataiter = iter(train_loader)
+images, labels = dataiter.next()
+images = images.numpy() # convert images to numpy for display
+
+# plot the images in the batch, along with the corresponding labels
+fig = plt.figure(figsize=(25, 4))
+for idx in np.arange(20):
+    ax = fig.add_subplot(2, 20/2, idx+1, xticks=[], yticks=[])
+    plt.imshow(np.transpose(images[idx], (1, 2, 0)))
+    ax.set_title(classes[labels[idx]])
