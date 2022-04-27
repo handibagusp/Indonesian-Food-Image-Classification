@@ -1,0 +1,24 @@
+# Run this cell to mount your Google Drive.
+from google.colab import drive
+drive.mount('/content/gdrive')
+
+# Helper function to download data and extract
+import os
+def get_data():
+  print("Downloading the data...")
+  !wget -O IndonesianFood.zip https://www.dropbox.com/s/gtzflg95rjd67ol/IndonesianFood.zip?dl=0
+  print("Dataset downloaded!")
+  print("Extracting data..")
+  !unzip -q IndonesianFood.zip
+  print("Extraction done!")
+  
+get_data()
+  
+# Check the contents of the downloaded file
+!ls IndonesianFood/
+
+# Check the contents of images folder
+!ls IndonesianFood/Images
+
+# Check the contents of images folder
+!ls IndonesianFood/Meta
