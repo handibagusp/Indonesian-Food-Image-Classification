@@ -1,0 +1,13 @@
+# Load the ResNet-50 model pretrained on ImageNet 
+model = models.resnet50(pretrained=True)
+print(model)
+
+# Freeze the initial layers
+for param in model.parameters():
+  param.requies_grad = False
+  
+# Replace the final fully connected layer with new fully connected layer (randomly initialized weights)
+# that outputs 10 units (based on our dataset)
+classifier = nn.Linear(2048, 10)
+model.fc = classifier
+print(model)
